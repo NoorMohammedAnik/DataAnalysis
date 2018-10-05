@@ -1,13 +1,10 @@
 package com.myapp.dataanalysis.sms;
 
 import android.content.ContentResolver;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -41,24 +38,26 @@ public class SmsLogActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sms_log);
 
-        smsListView = (ListView) findViewById(R.id.SMSList);
+        smsListView =  findViewById(R.id.SMSList);
 
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, smsMessagesList);
         smsListView.setAdapter(arrayAdapter);
 
 
-        // Add SMS Read Permision At Runtime
-        // Todo : If Permission Is Not GRANTED
-        if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") == PackageManager.PERMISSION_GRANTED) {
+        String getSmsType=getIntent().getExtras().getString("sms_type");
 
-            // Todo : If Permission Granted Then Show SMS
-            refreshSmsInbox();
-
-        } else {
-            // Todo : Then Set Permission
-            final int REQUEST_CODE_ASK_PERMISSIONS = 123;
-            ActivityCompat.requestPermissions(SmsLogActivity.this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
+        if (getSmsType.equals("outgoing"))
+        {
+            refreshSmsInbox("sent","To");
         }
+        else
+        {
+            refreshSmsInbox("inbox","From");
+        }
+
+
+
+
 
 
         smsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -85,15 +84,15 @@ public class SmsLogActivity extends AppCompatActivity {
 
     }
 
-    public void refreshSmsInbox() {
+    public void refreshSmsInbox(String sms_type,String s) {
         ContentResolver contentResolver = getContentResolver();
-        Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
+        Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/"+sms_type), null, null, null, null);
         int indexBody = smsInboxCursor.getColumnIndex("body");
         int indexAddress = smsInboxCursor.getColumnIndex("address");
         if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return;
         arrayAdapter.clear();
         do {
-            String str = "SMS From: " + smsInboxCursor.getString(indexAddress) +
+            String str = "SMS "+s+" : " + smsInboxCursor.getString(indexAddress) +
                     "\n" + smsInboxCursor.getString(indexBody) + "\n";
             arrayAdapter.add(str);
         } while (smsInboxCursor.moveToNext());

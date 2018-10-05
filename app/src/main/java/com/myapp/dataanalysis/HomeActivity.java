@@ -28,7 +28,7 @@ import java.util.List;
 public class HomeActivity extends Activity {
 
 
-    Button btnCallLog,btnSmsLog;
+    Button btnCallLog,btnSmsLog,btnOutGoingSms;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +36,7 @@ public class HomeActivity extends Activity {
 
         btnCallLog=findViewById(R.id.btn_call_log);
         btnSmsLog=findViewById(R.id.btn_sms);
+        btnOutGoingSms=findViewById(R.id.btn_outgoing_sms);
 
 
         if (Build.VERSION.SDK_INT>=23) //Android MarshMellow Version or above
@@ -48,11 +49,23 @@ public class HomeActivity extends Activity {
         }
 
 
+        btnOutGoingSms.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(HomeActivity.this,SmsLogActivity.class);
+
+                intent.putExtra("sms_type","outgoing");
+                startActivity(intent);
+            }
+        });
+
+
         btnCallLog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 Intent intent=new Intent(HomeActivity.this,CallLogActivity.class);
+
                 startActivity(intent);
             }
         });
@@ -65,6 +78,7 @@ public class HomeActivity extends Activity {
             public void onClick(View v) {
 
                 Intent intent=new Intent(HomeActivity.this,SmsLogActivity.class);
+                intent.putExtra("sms_type","incoming");
                 startActivity(intent);
             }
         });
@@ -88,9 +102,17 @@ public class HomeActivity extends Activity {
                         }
 
                         // check for permanent denial of any permission
-                        if (report.isAnyPermissionPermanentlyDenied()) {
+                       else if (report.isAnyPermissionPermanentlyDenied()) {
                             // show alert dialog navigating to Settings
                             showSettingsDialog();
+
+
+                        }
+
+                     else   if (!report.areAllPermissionsGranted())
+                        {
+                            finish();
+
                         }
 
 
